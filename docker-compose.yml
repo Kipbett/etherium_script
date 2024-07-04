@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  eth-node:
+    image: ethereum/client-go:stable
+    container_name: ethereum-node
+    ports:
+      - "8545:8545" # RPC port
+      - "8546:8546" # WebSocket port
+      - "30303:30303" # P2P port
+      - "30303:30303/udp"
+    volumes:
+      - ./data:/root/.ethereum
+    command: >
+      --syncmode "fast"
+      --http
+      --http.addr "0.0.0.0"
+      --http.port 8545
+      --http.api "eth,net,web3,personal"
+      --ws
+      --ws.addr "0.0.0.0"
+      --ws.port 8546
+      --ws.api "eth,net,web3,personal"
+      --networkid 1
+      --cache=1024
