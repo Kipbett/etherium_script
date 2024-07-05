@@ -1,4 +1,5 @@
 # Install necessary dependencies using Chocolatey
+
 function Install-Dependencies {
     # Install Chocolatey
     if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
@@ -37,9 +38,21 @@ function Start-BeaconChain {
 }
 
 # Start Validator
+$ValidatorCount = 1
+$WithdrawalAddress = Read-Host "Enter your withdrawal address: "  # Enter withdrawal address
+$PasswordFile = "C:\prysm\validator\password.txt" # Get your password from the directory
+
 function Start-Validator {
     cd C:\prysm
     Start-Process -FilePath ".\prysm.bat" -ArgumentList "validator --datadir=C:\validator\data --wallet-password=YOUR_WALLET_PASSWORD --wallet-dir=C:\wallets --accept-terms-of-use --launch-pad=true --keymanager=keystore" -NoNewWindow -Wait
+    # Create password file
+    "your-secure-password" | Out-File -FilePath $PasswordFile -Encoding ascii  # Replace with your actual secure password
+
+    # Generate keys using Prysm deposit CLI
+    docker run -it C:/prysim/keys gcr.io/prysmaticlabs/prysm/validator:latest accounts create --keystore-path=/keys --num-validators=$ValidatorCount --eth1-withdrawal-address=$WithdrawalAddress --keystore-password-file=/keys/password.txt
+    # Create deposit data
+    docker run -it -v C:/prysm/keys -v C:/prysm/deposits gcr.io/prysmaticlabs/prysm/validator:latest accounts create --keystore-path=/keys --deposit-datadir=/deposits --num-validators=$ValidatorCount --eth1-withdrawal-address=$WithdrawalAddress --keystore-password-file=/keys/password.txt
+
 }
 
 # Check node status
@@ -73,11 +86,7 @@ Start-Validator
 # Uncomment the line below to monitor status continuously
 while ($true) { Get-NodeStatus; Start-Sleep -Seconds 60 }
 
-# Example: Stop Ethereum Node after some time
-# Start-Sleep -Seconds 3600  # Wait for 1 hour
-# Stop-EthereumNode
-
-# Example: Check status once and exit
+# Check status once and exit
 Get-NodeStatus
 
-# End of script
+# End of scripty
